@@ -1,36 +1,23 @@
 var angular = require('angular');
 require('angular-route');
+require('angular-resource');
 
-var phonecatApp = angular.module('phonecatApp', ['ngRoute', 'phonecatControllers']);
-phonecatApp.config([
-  '$routeProvider',
-  $routeProvider => {
-    $routeProvider
-      .when('/phones', {
-        templateUrl:'public/partials/phone-list.html',
-        controller: 'PhoneListCtrl'
-      })
-      .when('/phones/:phoneId', {
-        templateUrl:'public/partials/phone-detail.html',
-        controller: 'PhoneDetailCtrl'
-      })
-      .otherwise({ redirectTo: '/phones'});
-  }
-]);
+var Ctrl = require('./controller');
+var Config = require('./config');
+var Filter = require('./filter');
+var Service = require('./service');
+
+var phonecatApp = angular.module('phonecatApp',
+  ['ngRoute',
+    'phonecatControllers',
+    'phonecatFilters',
+    'phonecatServices']);
+phonecatApp.config(Config);
 
 var phonecatControllers = angular.module('phonecatControllers', []);
+phonecatControllers.controller('PhoneListCtrl', Ctrl.PhoneListCtrl);
+phonecatControllers.controller('PhoneDetailCtrl', Ctrl.PhoneDetailCtrl);
 
-phonecatControllers.controller('PhoneListCtrl', ['$scope', '$http', function ($scope, $http) {
-  $http.get('public/phones/phones.json')
-    .success(data => {
-      $scope.phones = data;
-    });
-  $scope.orderProp = 'age'
-}]);
+angular.module('phonecatFilters', []).filter('checkmark', Filter);
 
-phonecatControllers.controller('PhoneDetailCtrl', ['$scope', '$routeParams', '$http', function ($scope, $routeParams, $http) {
-  $http.get('public/phones/' + $routeParams.phoneId + '.json')
-    .success(data => {
-      $scope.phone = data;
-    });
-}]);
+angular.module('phonecatServices', ['ngResource']).factory('Phone', Service);
