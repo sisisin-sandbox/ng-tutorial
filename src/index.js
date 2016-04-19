@@ -1,15 +1,36 @@
 var angular = require('angular');
-var phonecatApp = angular.module('phonecatApp', []);
+require('angular-route');
 
-phonecatApp.controller('PhoneListCtrl', function ($scope) {
-  $scope.phones = [
-    {'name': 'Nexus S',
-     'snippet': 'Fast just got faster with Nexus S.'},
-    {'name': 'Motorola XOOM™ with Wi-Fi',
-     'snippet': 'The Next, Next Generation tablet.'},
-    {'name': 'MOTOROLA XOOM™',
-     'snippet': 'The Next, Next Generation tablet.'}
-  ];
-});
+var phonecatApp = angular.module('phonecatApp', ['ngRoute', 'phonecatControllers']);
+phonecatApp.config([
+  '$routeProvider',
+  $routeProvider => {
+    $routeProvider
+      .when('/phones', {
+        templateUrl:'public/partials/phone-list.html',
+        controller: 'PhoneListCtrl'
+      })
+      .when('/phones/:phoneId', {
+        templateUrl:'public/partials/phone-detail.html',
+        controller: 'PhoneDetailCtrl'
+      })
+      .otherwise({ redirectTo: '/phones'});
+  }
+]);
 
-module.exports = phonecatApp;
+var phonecatControllers = angular.module('phonecatControllers', []);
+
+phonecatControllers.controller('PhoneListCtrl', ['$scope', '$http', function ($scope, $http) {
+  $http.get('public/phones/phones.json')
+    .success(data => {
+      $scope.phones = data;
+    });
+  $scope.orderProp = 'age'
+}]);
+
+phonecatControllers.controller('PhoneDetailCtrl', ['$scope', '$routeParams', '$http', function ($scope, $routeParams, $http) {
+  $http.get('public/phones/' + $routeParams.phoneId + '.json')
+    .success(data => {
+      $scope.phone = data;
+    });
+}]);
